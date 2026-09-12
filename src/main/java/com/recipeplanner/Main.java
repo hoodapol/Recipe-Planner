@@ -1,5 +1,8 @@
 package com.recipeplanner;
 
+import com.recipeplanner.model.Category;
+import com.recipeplanner.model.Ingredient;
+import com.recipeplanner.model.Recipe;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
@@ -21,5 +24,6 @@ public class Main extends Application {
 
     public static void main(String[] args) {
         launch(args);
+
     }
 }
