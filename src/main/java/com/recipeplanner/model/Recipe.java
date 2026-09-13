@@ -63,4 +63,8 @@ public class Recipe {
                 + "\nIngredients: " + ingredients
                 + "\nSteps: " + steps;
     }
+
+    public String getNutritionSummary() {
+        return "No detailed nutrition info available for this recipe.";
+    }
 }
