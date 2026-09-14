@@ -1,21 +1,19 @@
 package com.recipeplanner;
 
-import com.recipeplanner.model.*;
 import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
-import java.util.List;
-import java.util.ArrayList;
+import java.io.IOException;
 
 public class Main extends Application {
 
     @Override
-    public void start(Stage primaryStage) {
-        Label placeholder = new Label("Starting");
-        StackPane root = new StackPane(placeholder);
+    public void start(Stage primaryStage) throws IOException {
+        FXMLLoader loader = new FXMLLoader(Main.class.getResource("search-view.fxml"));
+        Parent root = loader.load();
         Scene scene = new Scene(root, 600, 400);
 
         primaryStage.setTitle("Recipe Planner");
@@ -25,7 +23,5 @@ public class Main extends Application {
 
     public static void main(String[] args) {
         launch(args);
-        }
-
     }
 }
