@@ -12,9 +12,9 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws IOException {
-        FXMLLoader loader = new FXMLLoader(Main.class.getResource("search-view.fxml"));
+        FXMLLoader loader = new FXMLLoader(Main.class.getResource("welcome-view.fxml"));
         Parent root = loader.load();
-        Scene scene = new Scene(root, 600, 400);
+        Scene scene = new Scene(root, 600, 500);
 
         primaryStage.setTitle("Recipe Planner");
         primaryStage.setScene(scene);

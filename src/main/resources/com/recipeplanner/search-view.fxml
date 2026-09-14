@@ -6,8 +6,10 @@
 <?import javafx.scene.layout.VBox?>
 
 <VBox spacing="10" alignment="CENTER" xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml">
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.recipeplanner.Controller.SearchController">
     <Label text="Recipe Planner - Search"/>
-    <TextField promptText="Search recipes..."/>
-    <Button text="Search"/>
+    <TextField fx:id="searchField" promptText="Search recipes..."/>
+    <Button fx:id="searchButton" text="Search" onAction="#handleSearch"/>
+    <Label fx:id="resultLabel" text=""/>
 </VBox>
