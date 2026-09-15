@@ -29,10 +29,10 @@ public class WelcomeController {
 
     @FXML
     private void handleGetStarted() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/recipeplanner/search-view.fxml"));
-        Parent searchRoot = loader.load();
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/recipeplanner/dashboard-view.fxml"));
+        Parent dashboardRoot = loader.load();
 
         Stage stage = (Stage) getStartedButton.getScene().getWindow();
-        stage.setScene(new Scene(searchRoot, 600, 400));
+        stage.setScene(new Scene(dashboardRoot, 720, 500));
     }
 }

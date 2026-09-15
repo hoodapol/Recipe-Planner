@@ -9,38 +9,85 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Rectangle?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: #F5EFE6;" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.recipeplanner.Controller.WelcomeController">
-   <top>
-      <StackPane fx:id="headerStack" prefHeight="143.0" prefWidth="606.0" BorderPane.alignment="CENTER">
-         <children>
-            <Rectangle fx:id="headerRect" arcHeight="5.0" arcWidth="5.0" fill="#c8a27d" height="109.0" strokeType="INSIDE" strokeWidth="0.0" StackPane.alignment="TOP_CENTER">
-               <effect>
-                  <DropShadow />
-               </effect>
-            </Rectangle>
-            <Label text="Recipe Planner" textFill="#5c3a21">
-               <font>
-                  <Font name="Georgia Italic" size="29.0" />
-               </font>
-            </Label>
-         </children>
-      </StackPane>
-   </top>
-   <center>
-      <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
-         <children>
-            <Label text="Discover recipes, explore ingredients and steps, and build your own collection of favorites." textFill="#6b5b4d">
-               <font>
-                  <Font name="Segoe UI" size="14.0" />
-               </font>
-            </Label>
-            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
-               <children>
-                  <Button fx:id="getStartedButton" alignment="BOTTOM_CENTER" mnemonicParsing="false" onAction="#handleGetStarted" prefWidth="82.0" style="-fx-background-color: #A97C50;" text="Get Started" textFill="WHITE" />
-               </children>
-            </HBox>
-         </children>
-      </VBox>
-   </center>
+    <top>
+        <StackPane fx:id="headerStack" prefHeight="143.0" prefWidth="606.0" BorderPane.alignment="CENTER">
+            <children>
+                <Rectangle fx:id="headerRect" arcHeight="5.0" arcWidth="5.0" fill="#c8a27d" height="143.0" strokeType="INSIDE" strokeWidth="0.0">
+                    <effect>
+                        <DropShadow />
+                    </effect>
+                </Rectangle>
+                <Label text="Recipe Planner" textFill="#5c3a21">
+                    <font>
+                        <Font name="Georgia Italic" size="29.0" />
+                    </font>
+                </Label>
+            </children>
+        </StackPane>
+    </top>
+    <center>
+        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="16.0" BorderPane.alignment="CENTER">
+            <children>
+                <TextFlow maxWidth="420.0" textAlignment="CENTER">
+                    <children>
+                        <Text fill="#6b5b4d" text="Discover ">
+                            <font>
+                                <Font name="Segoe UI" size="14.0" />
+                            </font>
+                        </Text>
+                        <Text fill="#6b5b4d" text="recipes">
+                            <font>
+                                <Font name="Segoe UI Bold" size="14.0" />
+                            </font>
+                        </Text>
+                        <Text fill="#6b5b4d" text=", explore ">
+                            <font>
+                                <Font name="Segoe UI" size="14.0" />
+                            </font>
+                        </Text>
+                        <Text fill="#6b5b4d" text="ingredients">
+                            <font>
+                                <Font name="Segoe UI Bold" size="14.0" />
+                            </font>
+                        </Text>
+                        <Text fill="#6b5b4d" text=" and ">
+                            <font>
+                                <Font name="Segoe UI" size="14.0" />
+                            </font>
+                        </Text>
+                        <Text fill="#6b5b4d" text="steps">
+                            <font>
+                                <Font name="Segoe UI Bold" size="14.0" />
+                            </font>
+                        </Text>
+                        <Text fill="#6b5b4d" text=", and build your own collection of ">
+                            <font>
+                                <Font name="Segoe UI" size="14.0" />
+                            </font>
+                        </Text>
+                        <Text fill="#6b5b4d" text="favorites">
+                            <font>
+                                <Font name="Segoe UI Bold" size="14.0" />
+                            </font>
+                        </Text>
+                        <Text fill="#6b5b4d" text=".">
+                            <font>
+                                <Font name="Segoe UI" size="14.0" />
+                            </font>
+                        </Text>
+                    </children>
+                </TextFlow>
+                <Rectangle arcHeight="2.0" arcWidth="2.0" fill="#c8a27d" height="2.0" width="180.0" />
+                <HBox alignment="CENTER" prefHeight="60.0" prefWidth="200.0">
+                    <children>
+                        <Button fx:id="getStartedButton" alignment="BOTTOM_CENTER" mnemonicParsing="false" onAction="#handleGetStarted" prefWidth="82.0" style="-fx-background-color: #A97C50;" text="Get Started" textFill="WHITE" />
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+    </center>
 </BorderPane>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane prefHeight="500.0" prefWidth="700.0" style="-fx-background-color: #F5EFE6;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.recipeplanner.Controller.DashboardController">
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: #c8a27d;">
+            <padding>
+                <Insets bottom="14.0" left="20.0" right="20.0" top="14.0" />
+            </padding>
+            <children>
+                <Label text="Recipe Planner" textFill="#5c3a21">
+                    <font>
+                        <javafx.scene.text.Font name="Georgia Italic" size="18.0" />
+                    </font>
+                </Label>
+                <TextField fx:id="searchField" prefWidth="260.0" promptText="Search recipes...">
+                    <HBox.margin>
+                        <Insets left="40.0" />
+                    </HBox.margin>
+                </TextField>
+                <Button fx:id="searchButton" mnemonicParsing="false" onAction="#handleSearch" style="-fx-background-color: #A97C50;" text="Search" textFill="WHITE" />
+            </children>
+        </HBox>
+    </top>
+    <left>
+        <VBox prefWidth="160.0" spacing="4.0" style="-fx-background-color: #FFFBF5;">
+            <padding>
+                <Insets bottom="20.0" left="12.0" right="12.0" top="20.0" />
+            </padding>
+            <children>
+                <Button fx:id="homeNavButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#showHome" style="-fx-background-color: #EADFC f;" text="🏠  Home" textFill="#5c3a21" />
+                <Button fx:id="favoritesNavButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#showFavorites" style="-fx-background-color: transparent;" text="❤  Favorites" textFill="#6b5b4d" />
+                <Button fx:id="categoriesNavButton" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#showCategories" style="-fx-background-color: transparent;" text="📂  Categories" textFill="#6b5b4d" />
+            </children>
+        </VBox>
+    </left>
+    <center>
+        <VBox fx:id="contentArea" spacing="12.0" BorderPane.alignment="CENTER">
+            <padding>
+                <Insets bottom="20.0" left="24.0" right="24.0" top="20.0" />
+            </padding>
+            <children>
+                <Label text="Recommended Recipes" textFill="#5c3a21">
+                    <font>
+                        <javafx.scene.text.Font name="Segoe UI Semibold" size="18.0" />
+                    </font>
+                </Label>
+                <Label text="(coming soon — recipe cards will appear here)" textFill="#6b5b4d" />
+            </children>
+        </VBox>
+    </center>
+</BorderPane>
