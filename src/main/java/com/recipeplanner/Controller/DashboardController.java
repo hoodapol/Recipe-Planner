@@ -1,10 +1,6 @@
 package com.recipeplanner.Controller;
 
-import com.recipeplanner.model.Category;
-import com.recipeplanner.model.Ingredient;
-import com.recipeplanner.model.Recipe;
-import com.recipeplanner.model.SavoryFood;
-import com.recipeplanner.model.SweetFood;
+import com.recipeplanner.model.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -41,11 +37,21 @@ public class DashboardController {
     @FXML
     private VBox contentArea;
 
-    private final List<Recipe> mockRecipes = new ArrayList<>();
+    private static final List<Recipe> mockRecipes = new ArrayList<>();
+
+    private String currentTab = "home";
+
+    private final ExecutorService searchExecutor = Executors.newFixedThreadPool(2, runnable -> {
+        Thread thread = new Thread(runnable, "search-worker");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     @FXML
     public void initialize() {
-        buildMockData();
+        if (mockRecipes.isEmpty()) {
+            buildMockData();
+        }
         showHome();
         searchField.setOnAction(e -> handleSearch());
     }
@@ -73,12 +79,6 @@ public class DashboardController {
         mockRecipes.add(cookies);
     }
 
-    private final ExecutorService searchExecutor = Executors.newFixedThreadPool(2, runnable -> {
-        Thread thread = new Thread(runnable, "search-worker");
-        thread.setDaemon(true);
-        return thread;
-    });
-
     @FXML
     private void handleSearch() {
         String query = searchField.getText().trim().toLowerCase();
@@ -98,6 +98,7 @@ public class DashboardController {
     }
 
     private void displaySearchResults(String query, List<Recipe> matches) {
+        currentTab = "search";
         setActiveButton(null);
         contentArea.getChildren().clear();
 
@@ -111,6 +112,27 @@ public class DashboardController {
             contentArea.getChildren().add(noResults);
         } else {
             for (Recipe r : matches) {
+                contentArea.getChildren().add(createRecipeRow(r));
+            }
+        }
+    }
+
+    @FXML
+    private void showFavorites() {
+        currentTab = "favorites";
+        setActiveButton(favoritesNavButton);
+        contentArea.getChildren().clear();
+        Label title = new Label("Your Favorites");
+        title.setTextFill(Color.web("#5c3a21"));
+        contentArea.getChildren().add(title);
+
+        List<Recipe> favorites = Favorites.getInstance().getFavorites();
+        if (favorites.isEmpty()) {
+            Label placeholder = new Label("(no favorites saved yet)");
+            placeholder.setTextFill(Color.web("#6b5b4d"));
+            contentArea.getChildren().add(placeholder);
+        } else {
+            for (Recipe r : favorites) {
                 contentArea.getChildren().add(createRecipeRow(r));
             }
         }
@@ -137,9 +159,10 @@ public class DashboardController {
 
             DetailController detailController = loader.getController();
             detailController.setRecipe(recipe);
+            detailController.setReturnTab(currentTab);
 
             javafx.stage.Stage stage = (javafx.stage.Stage) contentArea.getScene().getWindow();
-            stage.setScene(new javafx.scene.Scene(detailRoot, 600, 560));
+            stage.setScene(new javafx.scene.Scene(detailRoot, 720, 500));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -147,6 +170,7 @@ public class DashboardController {
 
     @FXML
     private void showHome() {
+        currentTab = "home";
         setActiveButton(homeNavButton);
         contentArea.getChildren().clear();
         Label title = new Label("Recommended Recipes");
@@ -158,18 +182,8 @@ public class DashboardController {
     }
 
     @FXML
-    private void showFavorites() {
-        setActiveButton(favoritesNavButton);
-        contentArea.getChildren().clear();
-        Label title = new Label("Your Favorites");
-        title.setTextFill(Color.web("#5c3a21"));
-        Label placeholder = new Label("(no favorites saved yet)");
-        placeholder.setTextFill(Color.web("#6b5b4d"));
-        contentArea.getChildren().addAll(title, placeholder);
-    }
-
-    @FXML
     private void showCategories() {
+        currentTab = "categories";
         setActiveButton(categoriesNavButton);
         contentArea.getChildren().clear();
         Label title = new Label("Browse by Category");
@@ -177,6 +191,18 @@ public class DashboardController {
         Label placeholder = new Label("(category list coming soon)");
         placeholder.setTextFill(Color.web("#6b5b4d"));
         contentArea.getChildren().addAll(title, placeholder);
+    }
+
+    /**
+     * Called from DetailController after reloading the dashboard,
+     * so Back navigation restores whichever tab was active before.
+     */
+    public void showTab(String tab) {
+        switch (tab) {
+            case "favorites" -> showFavorites();
+            case "categories" -> showCategories();
+            default -> showHome();
+        }
     }
 
     private void setActiveButton(Button active) {
@@ -187,6 +213,4 @@ public class DashboardController {
             active.setStyle("-fx-background-color: #EADFCF;");
         }
     }
-
-
 }
