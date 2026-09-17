@@ -5,6 +5,7 @@ import com.recipeplanner.model.Ingredient;
 import com.recipeplanner.model.Recipe;
 import com.recipeplanner.model.SavoryFood;
 import com.recipeplanner.model.SweetFood;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -17,6 +18,8 @@ import javafx.scene.paint.Color;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class DashboardController {
 
@@ -44,6 +47,7 @@ public class DashboardController {
     public void initialize() {
         buildMockData();
         showHome();
+        searchField.setOnAction(e -> handleSearch());
     }
 
     private void buildMockData() {
@@ -69,20 +73,35 @@ public class DashboardController {
         mockRecipes.add(cookies);
     }
 
+    private final ExecutorService searchExecutor = Executors.newFixedThreadPool(2, runnable -> {
+        Thread thread = new Thread(runnable, "search-worker");
+        thread.setDaemon(true);
+        return thread;
+    });
+
     @FXML
     private void handleSearch() {
         String query = searchField.getText().trim().toLowerCase();
+
+        searchExecutor.execute(() -> {
+            List<Recipe> matches = new ArrayList<>();
+            for (Recipe r : mockRecipes) {
+                boolean titleMatches = r.getTitle().toLowerCase().contains(query);
+                boolean categoryMatches = r.getCategory().toString().toLowerCase().contains(query);
+                if (titleMatches || categoryMatches) {
+                    matches.add(r);
+                }
+            }
+
+            Platform.runLater(() -> displaySearchResults(query, matches));
+        });
+    }
+
+    private void displaySearchResults(String query, List<Recipe> matches) {
         setActiveButton(null);
         contentArea.getChildren().clear();
 
-        List<Recipe> matches = new ArrayList<>();
-        for (Recipe r : mockRecipes) {
-            if (r.getTitle().toLowerCase().contains(query)) {
-                matches.add(r);
-            }
-        }
-
-        Label title = new Label("Results for: " + searchField.getText());
+        Label title = new Label("Results for: " + query);
         title.setTextFill(Color.web("#5c3a21"));
         contentArea.getChildren().add(title);
 
@@ -168,4 +187,6 @@ public class DashboardController {
             active.setStyle("-fx-background-color: #EADFCF;");
         }
     }
+
+
 }
