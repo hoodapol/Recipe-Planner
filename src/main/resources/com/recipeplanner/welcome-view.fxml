@@ -4,7 +4,6 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.effect.DropShadow?>
 <?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Rectangle?>
@@ -12,82 +11,101 @@
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.text.TextFlow?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" style="-fx-background-color: #F5EFE6;" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.recipeplanner.Controller.WelcomeController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="700.0" style="-fx-background-color: #F5EFE6;" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.recipeplanner.Controller.WelcomeController">
     <top>
-        <StackPane fx:id="headerStack" prefHeight="143.0" prefWidth="606.0" BorderPane.alignment="CENTER">
+        <StackPane fx:id="headerStack" prefHeight="125.0" style="-fx-background-color: #C8A27D; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.20), 8, 0, 0, 3);">
             <children>
-                <Rectangle fx:id="headerRect" arcHeight="5.0" arcWidth="5.0" fill="#c8a27d" height="143.0" strokeType="INSIDE" strokeWidth="0.0">
-                    <effect>
-                        <DropShadow />
-                    </effect>
-                </Rectangle>
-                <Label text="Recipe Planner" textFill="#5c3a21">
-                    <font>
-                        <Font name="Georgia Italic" size="29.0" />
-                    </font>
-                </Label>
+                <VBox alignment="CENTER" spacing="5.0">
+                    <children>
+                        <Label text="Recipe Planner" textFill="#5C3A21">
+                            <font>
+                                <Font name="Georgia Bold" size="32.0" />
+                            </font>
+                        </Label>
+                        <Label text="Plan • Cook • Enjoy" textFill="#76543B">
+                            <font>
+                                <Font name="Segoe UI" size="14.0" />
+                            </font>
+                        </Label>
+                    </children>
+                </VBox>
             </children>
         </StackPane>
     </top>
     <center>
-        <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0" spacing="16.0" BorderPane.alignment="CENTER">
+        <StackPane>
             <children>
-                <TextFlow maxWidth="420.0" textAlignment="CENTER">
+                <VBox alignment="CENTER" prefWidth="420.0" prefHeight="300.0" spacing="15.0" style="-fx-background-color: #FFFDF9; -fx-background-radius: 22; -fx-padding: 35; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.16), 18, 0.15, 0, 5);">
                     <children>
-                        <Text fill="#6b5b4d" text="Discover ">
+                        <StackPane prefHeight="75.0" prefWidth="75.0">
+                            <children>
+                                <javafx.scene.shape.Circle radius="36.0" fill="#F0E2D1" />
+                                <Text text="🍴" style="-fx-font-size: 34px;" />
+                            </children>
+                        </StackPane>
+                        <Label text="Welcome to Recipe Planner" textFill="#5C3A21" wrapText="true" alignment="CENTER">
                             <font>
-                                <Font name="Segoe UI" size="14.0" />
+                                <Font name="Georgia Bold" size="21.0" />
                             </font>
-                        </Text>
-                        <Text fill="#6b5b4d" text="recipes">
-                            <font>
-                                <Font name="Segoe UI Bold" size="14.0" />
-                            </font>
-                        </Text>
-                        <Text fill="#6b5b4d" text=", explore ">
-                            <font>
-                                <Font name="Segoe UI" size="14.0" />
-                            </font>
-                        </Text>
-                        <Text fill="#6b5b4d" text="ingredients">
-                            <font>
-                                <Font name="Segoe UI Bold" size="14.0" />
-                            </font>
-                        </Text>
-                        <Text fill="#6b5b4d" text=" and ">
-                            <font>
-                                <Font name="Segoe UI" size="14.0" />
-                            </font>
-                        </Text>
-                        <Text fill="#6b5b4d" text="steps">
-                            <font>
-                                <Font name="Segoe UI Bold" size="14.0" />
-                            </font>
-                        </Text>
-                        <Text fill="#6b5b4d" text=", and build your own collection of ">
-                            <font>
-                                <Font name="Segoe UI" size="14.0" />
-                            </font>
-                        </Text>
-                        <Text fill="#6b5b4d" text="favorites">
-                            <font>
-                                <Font name="Segoe UI Bold" size="14.0" />
-                            </font>
-                        </Text>
-                        <Text fill="#6b5b4d" text=".">
-                            <font>
-                                <Font name="Segoe UI" size="14.0" />
-                            </font>
-                        </Text>
+                        </Label>
+                        <TextFlow maxWidth="360.0" textAlignment="CENTER">
+                            <children>
+                                <Text fill="#6B5B4D" text="Discover ">
+                                    <font>
+                                        <Font name="Segoe UI" size="14.0" />
+                                    </font>
+                                </Text>
+                                <Text fill="#5C3A21" text="recipes">
+                                    <font>
+                                        <Font name="Segoe UI Bold" size="14.0" />
+                                    </font>
+                                </Text>
+                                <Text fill="#6B5B4D" text=", explore ">
+                                    <font>
+                                        <Font name="Segoe UI" size="14.0" />
+                                    </font>
+                                </Text>
+                                <Text fill="#5C3A21" text="ingredients">
+                                    <font>
+                                        <Font name="Segoe UI Bold" size="14.0" />
+                                    </font>
+                                </Text>
+                                <Text fill="#6B5B4D" text=" and ">
+                                    <font>
+                                        <Font name="Segoe UI" size="14.0" />
+                                    </font>
+                                </Text>
+                                <Text fill="#5C3A21" text="steps">
+                                    <font>
+                                        <Font name="Segoe UI Bold" size="14.0" />
+                                    </font>
+                                </Text>
+                                <Text fill="#6B5B4D" text=", and build your own collection of ">
+                                    <font>
+                                        <Font name="Segoe UI" size="14.0" />
+                                    </font>
+                                </Text>
+                                <Text fill="#5C3A21" text="favorites">
+                                    <font>
+                                        <Font name="Segoe UI Bold" size="14.0" />
+                                    </font>
+                                </Text>
+                                <Text fill="#6B5B4D" text="." >
+                                    <font>
+                                        <Font name="Segoe UI" size="14.0" />
+                                    </font>
+                                </Text>
+                            </children>
+                        </TextFlow>
+                        <Rectangle width="160.0" height="2.0" arcWidth="2.0" arcHeight="2.0" fill="#C8A27D" />
+                        <Button fx:id="getStartedButton" mnemonicParsing="false" onAction="#handleGetStarted" prefWidth="145.0" prefHeight="42.0" text="Get Started  →" textFill="WHITE" style="-fx-background-color: #A97C50; -fx-background-radius: 21; -fx-font-family: 'Segoe UI'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;">
+                            <effect>
+                                <DropShadow radius="5.0" offsetY="2.0" color="rgba(0,0,0,0.20)" />
+                            </effect>
+                        </Button>
                     </children>
-                </TextFlow>
-                <Rectangle arcHeight="2.0" arcWidth="2.0" fill="#c8a27d" height="2.0" width="180.0" />
-                <HBox alignment="CENTER" prefHeight="60.0" prefWidth="200.0">
-                    <children>
-                        <Button fx:id="getStartedButton" alignment="BOTTOM_CENTER" mnemonicParsing="false" onAction="#handleGetStarted" prefWidth="82.0" style="-fx-background-color: #A97C50;" text="Get Started" textFill="WHITE" />
-                    </children>
-                </HBox>
+                </VBox>
             </children>
-        </VBox>
+        </StackPane>
     </center>
 </BorderPane>

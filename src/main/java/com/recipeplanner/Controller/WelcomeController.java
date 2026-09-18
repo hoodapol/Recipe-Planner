@@ -5,8 +5,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.layout.StackPane;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -17,14 +15,12 @@ public class WelcomeController {
     private Button getStartedButton;
 
     @FXML
-    private StackPane headerStack;
-
-    @FXML
-    private Rectangle headerRect;
-
-    @FXML
     public void initialize() {
-        headerRect.widthProperty().bind(headerStack.widthProperty());
+        String normalStyle = "-fx-background-color: #A97C50; -fx-background-radius: 21; -fx-font-family: 'Segoe UI'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;";
+        String hoverStyle = "-fx-background-color: #8C6239; -fx-background-radius: 21; -fx-font-family: 'Segoe UI'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand;";
+
+        getStartedButton.setOnMouseEntered(e -> getStartedButton.setStyle(hoverStyle));
+        getStartedButton.setOnMouseExited(e -> getStartedButton.setStyle(normalStyle));
     }
 
     @FXML
