@@ -4,12 +4,20 @@ import com.recipeplanner.model.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -47,13 +55,49 @@ public class DashboardController {
         return thread;
     });
 
+    private static final String SEARCH_BTN_NORMAL = "-fx-background-color: #A97C50; -fx-background-radius: 18; -fx-font-family: 'Segoe UI Semibold'; -fx-font-size: 13px; -fx-cursor: hand; -fx-padding: 0 20 0 20;";
+    private static final String SEARCH_BTN_HOVER = "-fx-background-color: #8C6239; -fx-background-radius: 18; -fx-font-family: 'Segoe UI Semibold'; -fx-font-size: 13px; -fx-cursor: hand; -fx-padding: 0 20 0 20;";
+
+    private static final String NAV_INACTIVE = "-fx-background-color: transparent; -fx-background-radius: 10;";
+    private static final String NAV_HOVER = "-fx-background-color: #F3E9DC; -fx-background-radius: 10;";
+    private static final String NAV_ACTIVE = "-fx-background-color: #EADFCF; -fx-background-radius: 10;";
+
+    private static final String VIEW_BTN_NORMAL = "-fx-background-color: #A97C50; -fx-background-radius: 14; -fx-cursor: hand;";
+    private static final String VIEW_BTN_HOVER = "-fx-background-color: #8C6239; -fx-background-radius: 14; -fx-cursor: hand;";
+
+    private Button activeNavButton;
+
     @FXML
     public void initialize() {
         if (mockRecipes.isEmpty()) {
             buildMockData();
         }
+
+        applyHover(searchButton, SEARCH_BTN_NORMAL, SEARCH_BTN_HOVER);
+        applyNavHover(homeNavButton);
+        applyNavHover(favoritesNavButton);
+        applyNavHover(categoriesNavButton);
+
         showHome();
         searchField.setOnAction(e -> handleSearch());
+    }
+
+    private void applyHover(Button button, String normalStyle, String hoverStyle) {
+        button.setOnMouseEntered(e -> button.setStyle(hoverStyle));
+        button.setOnMouseExited(e -> button.setStyle(normalStyle));
+    }
+
+    private void applyNavHover(Button button) {
+        button.setOnMouseEntered(e -> {
+            if (button != activeNavButton) {
+                button.setStyle(NAV_HOVER);
+            }
+        });
+        button.setOnMouseExited(e -> {
+            if (button != activeNavButton) {
+                button.setStyle(NAV_INACTIVE);
+            }
+        });
     }
 
     private void buildMockData() {
@@ -102,9 +146,7 @@ public class DashboardController {
         setActiveButton(null);
         contentArea.getChildren().clear();
 
-        Label title = new Label("Results for: " + query);
-        title.setTextFill(Color.web("#5c3a21"));
-        contentArea.getChildren().add(title);
+        contentArea.getChildren().add(sectionTitle("Results for: " + query));
 
         if (matches.isEmpty()) {
             Label noResults = new Label("No recipes found.");
@@ -122,9 +164,8 @@ public class DashboardController {
         currentTab = "favorites";
         setActiveButton(favoritesNavButton);
         contentArea.getChildren().clear();
-        Label title = new Label("Your Favorites");
-        title.setTextFill(Color.web("#5c3a21"));
-        contentArea.getChildren().add(title);
+
+        contentArea.getChildren().add(sectionTitle("Your Favorites"));
 
         List<Recipe> favorites = Favorites.getInstance().getFavorites();
         if (favorites.isEmpty()) {
@@ -138,17 +179,94 @@ public class DashboardController {
         }
     }
 
-    private javafx.scene.layout.HBox createRecipeRow(Recipe recipe) {
+    @FXML
+    private void showHome() {
+        currentTab = "home";
+        setActiveButton(homeNavButton);
+        contentArea.getChildren().clear();
+
+        Label greeting = new Label("Good to see you!");
+        greeting.setTextFill(Color.web("#5c3a21"));
+        greeting.setFont(Font.font("Segoe UI", FontWeight.BOLD, 22));
+
+        Label subGreeting = new Label("Explore your recipes and plan your next meal.");
+        subGreeting.setTextFill(Color.web("#6b5b4d"));
+        subGreeting.setFont(Font.font("Segoe UI", 13));
+
+        HBox statsRow = new HBox(14,
+                statCard("Recipes", String.valueOf(mockRecipes.size())),
+                statCard("Favorites", String.valueOf(Favorites.getInstance().getFavorites().size())),
+                statCard("Categories", String.valueOf(Category.values().length))
+        );
+
+        contentArea.getChildren().addAll(greeting, subGreeting, statsRow, sectionTitle("Recommended Recipes"));
+        for (Recipe r : mockRecipes) {
+            contentArea.getChildren().add(createRecipeRow(r));
+        }
+    }
+
+    @FXML
+    private void showCategories() {
+        currentTab = "categories";
+        setActiveButton(categoriesNavButton);
+        contentArea.getChildren().clear();
+        contentArea.getChildren().add(sectionTitle("Browse by Category"));
+
+        Label placeholder = new Label("(category list coming soon)");
+        placeholder.setTextFill(Color.web("#6b5b4d"));
+        contentArea.getChildren().add(placeholder);
+    }
+
+    public void showTab(String tab) {
+        switch (tab) {
+            case "favorites" -> showFavorites();
+            case "categories" -> showCategories();
+            default -> showHome();
+        }
+    }
+
+    private VBox statCard(String label, String value) {
+        Label valueLabel = new Label(value);
+        valueLabel.setTextFill(Color.web("#5c3a21"));
+        valueLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 20));
+
+        Label captionLabel = new Label(label);
+        captionLabel.setTextFill(Color.web("#8a7768"));
+        captionLabel.setFont(Font.font("Segoe UI", 11));
+
+        VBox card = new VBox(4, valueLabel, captionLabel);
+        card.setAlignment(Pos.CENTER);
+        card.setPrefWidth(120);
+        card.setPadding(new Insets(14, 10, 14, 10));
+        card.setStyle("-fx-background-color: #FFFDF9; -fx-background-radius: 14; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);");
+        return card;
+    }
+
+    private Label sectionTitle(String text) {
+        Label label = new Label(text);
+        label.setTextFill(Color.web("#5c3a21"));
+        label.setFont(Font.font("Segoe UI", FontWeight.SEMI_BOLD, 16));
+        return label;
+    }
+
+    private HBox createRecipeRow(Recipe recipe) {
         Label nameLabel = new Label(recipe.getTitle() + "  (" + recipe.getCategory() + ")");
         nameLabel.setTextFill(Color.web("#5c3a21"));
 
         Button viewButton = new Button("View");
-        viewButton.setStyle("-fx-background-color: #A97C50;");
+        viewButton.setStyle(VIEW_BTN_NORMAL);
         viewButton.setTextFill(Color.WHITE);
         viewButton.setOnAction(e -> openDetail(recipe));
+        applyHover(viewButton, VIEW_BTN_NORMAL, VIEW_BTN_HOVER);
 
-        javafx.scene.layout.HBox row = new javafx.scene.layout.HBox(12, nameLabel, viewButton);
-        row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        HBox spacer = new HBox();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        HBox row = new HBox(12, nameLabel, spacer, viewButton);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(10, 14, 10, 14));
+        row.setStyle("-fx-background-color: #FFFDF9; -fx-background-radius: 10;");
+
         return row;
     }
 
@@ -161,56 +279,20 @@ public class DashboardController {
             detailController.setRecipe(recipe);
             detailController.setReturnTab(currentTab);
 
-            javafx.stage.Stage stage = (javafx.stage.Stage) contentArea.getScene().getWindow();
-            stage.setScene(new javafx.scene.Scene(detailRoot, 720, 500));
+            Stage stage = (Stage) contentArea.getScene().getWindow();
+            stage.setScene(new Scene(detailRoot, 720, 500));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    @FXML
-    private void showHome() {
-        currentTab = "home";
-        setActiveButton(homeNavButton);
-        contentArea.getChildren().clear();
-        Label title = new Label("Recommended Recipes");
-        title.setTextFill(Color.web("#5c3a21"));
-        contentArea.getChildren().add(title);
-        for (Recipe r : mockRecipes) {
-            contentArea.getChildren().add(createRecipeRow(r));
-        }
-    }
-
-    @FXML
-    private void showCategories() {
-        currentTab = "categories";
-        setActiveButton(categoriesNavButton);
-        contentArea.getChildren().clear();
-        Label title = new Label("Browse by Category");
-        title.setTextFill(Color.web("#5c3a21"));
-        Label placeholder = new Label("(category list coming soon)");
-        placeholder.setTextFill(Color.web("#6b5b4d"));
-        contentArea.getChildren().addAll(title, placeholder);
-    }
-
-    /**
-     * Called from DetailController after reloading the dashboard,
-     * so Back navigation restores whichever tab was active before.
-     */
-    public void showTab(String tab) {
-        switch (tab) {
-            case "favorites" -> showFavorites();
-            case "categories" -> showCategories();
-            default -> showHome();
-        }
-    }
-
     private void setActiveButton(Button active) {
-        homeNavButton.setStyle("-fx-background-color: transparent;");
-        favoritesNavButton.setStyle("-fx-background-color: transparent;");
-        categoriesNavButton.setStyle("-fx-background-color: transparent;");
+        homeNavButton.setStyle(NAV_INACTIVE);
+        favoritesNavButton.setStyle(NAV_INACTIVE);
+        categoriesNavButton.setStyle(NAV_INACTIVE);
+        activeNavButton = active;
         if (active != null) {
-            active.setStyle("-fx-background-color: #EADFCF;");
+            active.setStyle(NAV_ACTIVE);
         }
     }
 }
