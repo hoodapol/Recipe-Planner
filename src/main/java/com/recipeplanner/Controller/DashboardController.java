@@ -1,7 +1,6 @@
 package com.recipeplanner.Controller;
 
 import com.recipeplanner.model.*;
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -20,10 +19,7 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class DashboardController {
 
@@ -45,18 +41,9 @@ public class DashboardController {
     @FXML
     private VBox contentArea;
 
-    private static final List<Recipe> mockRecipes = new ArrayList<>();
-
     private String currentTab = "home";
 
-    private final ExecutorService searchExecutor = Executors.newFixedThreadPool(2, runnable -> {
-        Thread thread = new Thread(runnable, "search-worker");
-        thread.setDaemon(true);
-        return thread;
-    });
-
-    private static final String SEARCH_BTN_NORMAL = "-fx-background-color: #A97C50; -fx-background-radius: 18; -fx-font-family: 'Segoe UI Semibold'; -fx-font-size: 13px; -fx-cursor: hand; -fx-padding: 0 20 0 20;";
-    private static final String SEARCH_BTN_HOVER = "-fx-background-color: #8C6239; -fx-background-radius: 18; -fx-font-family: 'Segoe UI Semibold'; -fx-font-size: 13px; -fx-cursor: hand; -fx-padding: 0 20 0 20;";
+    private Button activeNavButton;
 
     private static final String NAV_INACTIVE = "-fx-background-color: transparent; -fx-background-radius: 10;";
     private static final String NAV_HOVER = "-fx-background-color: #F3E9DC; -fx-background-radius: 10;";
@@ -65,26 +52,16 @@ public class DashboardController {
     private static final String VIEW_BTN_NORMAL = "-fx-background-color: #A97C50; -fx-background-radius: 14; -fx-cursor: hand;";
     private static final String VIEW_BTN_HOVER = "-fx-background-color: #8C6239; -fx-background-radius: 14; -fx-cursor: hand;";
 
-    private Button activeNavButton;
-
     @FXML
     public void initialize() {
-        if (mockRecipes.isEmpty()) {
-            buildMockData();
-        }
-
-        applyHover(searchButton, SEARCH_BTN_NORMAL, SEARCH_BTN_HOVER);
         applyNavHover(homeNavButton);
         applyNavHover(favoritesNavButton);
         applyNavHover(categoriesNavButton);
 
         showHome();
-        searchField.setOnAction(e -> handleSearch());
-    }
 
-    private void applyHover(Button button, String normalStyle, String hoverStyle) {
-        button.setOnMouseEntered(e -> button.setStyle(hoverStyle));
-        button.setOnMouseExited(e -> button.setStyle(normalStyle));
+        searchField.setOnMouseClicked(e -> openSearchScreen());
+        searchButton.setOnAction(e -> openSearchScreen());
     }
 
     private void applyNavHover(Button button) {
@@ -100,62 +77,15 @@ public class DashboardController {
         });
     }
 
-    private void buildMockData() {
-        Recipe toast = new Recipe("Plain Toast", "Just bread", Category.BREAKFAST);
-        toast.addIngredients(new Ingredient("bread", 2.0, "slices"));
-        toast.addSteps("Toast until golden");
-        mockRecipes.add(toast);
+    private void openSearchScreen() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/recipeplanner/search-view.fxml"));
+            Parent searchRoot = loader.load();
 
-        SweetFood cake = new SweetFood("Chocolate Cake", "Rich chocolate dessert", Category.DESSERT, 45.0, 350, 60.0);
-        cake.addIngredients(new Ingredient("cocoa powder", 0.5, "cups"));
-        cake.addSteps("Bake at 350F for 30 minutes");
-        mockRecipes.add(cake);
-
-        SavoryFood curry = new SavoryFood("Chicken Curry", "Spicy chicken curry", Category.DINNER,
-                SavoryFood.SpiceLevel.HOT, 28.0, 620.0);
-        curry.addIngredients(new Ingredient("chicken", 500.0, "g"));
-        curry.addSteps("Simmer for 20 minutes");
-        mockRecipes.add(curry);
-
-        SweetFood cookies = new SweetFood("Sugar Cookies", "Classic sweet cookies", Category.SNACK, 20.0, 150, 22.0);
-        cookies.addIngredients(new Ingredient("sugar", 1.0, "cups"));
-        cookies.addSteps("Bake at 375F for 10 minutes");
-        mockRecipes.add(cookies);
-    }
-
-    @FXML
-    private void handleSearch() {
-        String query = searchField.getText().trim().toLowerCase();
-
-        searchExecutor.execute(() -> {
-            List<Recipe> matches = new ArrayList<>();
-            for (Recipe r : mockRecipes) {
-                boolean titleMatches = r.getTitle().toLowerCase().contains(query);
-                boolean categoryMatches = r.getCategory().toString().toLowerCase().contains(query);
-                if (titleMatches || categoryMatches) {
-                    matches.add(r);
-                }
-            }
-
-            Platform.runLater(() -> displaySearchResults(query, matches));
-        });
-    }
-
-    private void displaySearchResults(String query, List<Recipe> matches) {
-        currentTab = "search";
-        setActiveButton(null);
-        contentArea.getChildren().clear();
-
-        contentArea.getChildren().add(sectionTitle("Results for: " + query));
-
-        if (matches.isEmpty()) {
-            Label noResults = new Label("No recipes found.");
-            noResults.setTextFill(Color.web("#6b5b4d"));
-            contentArea.getChildren().add(noResults);
-        } else {
-            for (Recipe r : matches) {
-                contentArea.getChildren().add(createRecipeRow(r));
-            }
+            Stage stage = (Stage) contentArea.getScene().getWindow();
+            stage.setScene(new Scene(searchRoot, 600, 540));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -185,6 +115,8 @@ public class DashboardController {
         setActiveButton(homeNavButton);
         contentArea.getChildren().clear();
 
+        List<Recipe> allRecipes = RecipeRepository.getInstance().getAllRecipes();
+
         Label greeting = new Label("Good to see you!");
         greeting.setTextFill(Color.web("#5c3a21"));
         greeting.setFont(Font.font("Segoe UI", FontWeight.BOLD, 22));
@@ -194,13 +126,13 @@ public class DashboardController {
         subGreeting.setFont(Font.font("Segoe UI", 13));
 
         HBox statsRow = new HBox(14,
-                statCard("Recipes", String.valueOf(mockRecipes.size())),
+                statCard("Recipes", String.valueOf(allRecipes.size())),
                 statCard("Favorites", String.valueOf(Favorites.getInstance().getFavorites().size())),
                 statCard("Categories", String.valueOf(Category.values().length))
         );
 
         contentArea.getChildren().addAll(greeting, subGreeting, statsRow, sectionTitle("Recommended Recipes"));
-        for (Recipe r : mockRecipes) {
+        for (Recipe r : allRecipes) {
             contentArea.getChildren().add(createRecipeRow(r));
         }
     }
@@ -257,7 +189,8 @@ public class DashboardController {
         viewButton.setStyle(VIEW_BTN_NORMAL);
         viewButton.setTextFill(Color.WHITE);
         viewButton.setOnAction(e -> openDetail(recipe));
-        applyHover(viewButton, VIEW_BTN_NORMAL, VIEW_BTN_HOVER);
+        viewButton.setOnMouseEntered(e -> viewButton.setStyle(VIEW_BTN_HOVER));
+        viewButton.setOnMouseExited(e -> viewButton.setStyle(VIEW_BTN_NORMAL));
 
         HBox spacer = new HBox();
         HBox.setHgrow(spacer, Priority.ALWAYS);
