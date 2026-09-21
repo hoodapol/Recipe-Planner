@@ -8,6 +8,7 @@ public class Recipe {
     private Category category;
     private List<Ingredient> ingredients;
     private List<String> steps;
+    private int id = -1;
 
     public Recipe(String title, String description, Category category) {
         this.title = title;
@@ -55,6 +56,14 @@ public class Recipe {
 
     public void addSteps(String step) {
         steps.add(step);
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     @Override

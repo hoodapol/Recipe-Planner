@@ -3,8 +3,7 @@ package com.recipeplanner.model;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+
 public class DatabaseManager {
 
     private static final String URL = "jdbc:sqlite:recipeplanner.db";
@@ -75,9 +74,9 @@ public class DatabaseManager {
 
     public static void insertRecipe(Recipe recipe) {
         String insertRecipeSql = """
-        INSERT INTO recipes (title, description, category, recipe_type, sugar_content, calories, carbs, spice_level, protein, sodium)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """;
+            INSERT INTO recipes (title, description, category, recipe_type, sugar_content, calories, carbs, spice_level, protein, sodium)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """;
 
         try (Connection conn = connect();
              PreparedStatement pstmt = conn.prepareStatement(insertRecipeSql, Statement.RETURN_GENERATED_KEYS)) {
@@ -121,6 +120,8 @@ public class DatabaseManager {
             } else {
                 throw new SQLException("Failed to retrieve generated recipe id.");
             }
+
+            recipe.setId(recipeId);
 
             insertIngredients(conn, recipeId, recipe.getIngredients());
             insertSteps(conn, recipeId, recipe.getSteps());
@@ -189,6 +190,8 @@ public class DatabaseManager {
                     default -> recipe = new Recipe(title, description, category);
                 }
 
+                recipe.setId(id);
+
                 for (Ingredient ing : getIngredientsForRecipe(conn, id)) {
                     recipe.addIngredients(ing);
                 }
@@ -238,14 +241,207 @@ public class DatabaseManager {
         return steps;
     }
 
+    public static void updateRecipeDescription(int recipeId, String newDescription) {
+        String sql = "UPDATE recipes SET description = ? WHERE id = ?";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, newDescription);
+            pstmt.setInt(2, recipeId);
+
+            int rowsAffected = pstmt.executeUpdate();
+            System.out.println("Updated " + rowsAffected + " row(s).");
+
+        } catch (SQLException e) {
+            System.out.println("Error updating recipe: " + e.getMessage());
+        }
+    }
+
+    public static void deleteRecipe(int recipeId) {
+        String deleteIngredientsSql = "DELETE FROM ingredients WHERE recipe_id = ?";
+        String deleteStepsSql = "DELETE FROM steps WHERE recipe_id = ?";
+        String deleteRecipeSql = "DELETE FROM recipes WHERE id = ?";
+
+        try (Connection conn = connect()) {
+            try (PreparedStatement pstmt = conn.prepareStatement(deleteIngredientsSql)) {
+                pstmt.setInt(1, recipeId);
+                pstmt.executeUpdate();
+            }
+            try (PreparedStatement pstmt = conn.prepareStatement(deleteStepsSql)) {
+                pstmt.setInt(1, recipeId);
+                pstmt.executeUpdate();
+            }
+            try (PreparedStatement pstmt = conn.prepareStatement(deleteRecipeSql)) {
+                pstmt.setInt(1, recipeId);
+                int rowsAffected = pstmt.executeUpdate();
+                System.out.println("Deleted " + rowsAffected + " row(s) from recipes.");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error deleting recipe: " + e.getMessage());
+        }
+    }
+
+    public static void addFavoriteRecipe(int recipeId) {
+        if (isFavorite(recipeId)) {
+            return;
+        }
+        String sql = "INSERT INTO favorites (recipe_id) VALUES (?)";
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, recipeId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Error adding favorite: " + e.getMessage());
+        }
+    }
+
+    public static void removeFavoriteRecipe(int recipeId) {
+        String sql = "DELETE FROM favorites WHERE recipe_id = ?";
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, recipeId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Error removing favorite: " + e.getMessage());
+        }
+    }
+
+    public static boolean isFavorite(int recipeId) {
+        String sql = "SELECT COUNT(*) AS total FROM favorites WHERE recipe_id = ?";
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, recipeId);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("total") > 0;
+            }
+        } catch (SQLException e) {
+            System.out.println("Error checking favorite: " + e.getMessage());
+        }
+        return false;
+    }
+
+    public static List<Recipe> getFavoriteRecipes() {
+        List<Recipe> favorites = new ArrayList<>();
+        String sql = "SELECT recipe_id FROM favorites";
+
+        try (Connection conn = connect();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            while (rs.next()) {
+                int recipeId = rs.getInt("recipe_id");
+                Recipe r = getRecipeById(recipeId);
+                if (r != null) {
+                    favorites.add(r);
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching favorites: " + e.getMessage());
+        }
+
+        return favorites;
+    }
+
+    public static Recipe getRecipeById(int recipeId) {
+        String sql = "SELECT * FROM recipes WHERE id = ?";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setInt(1, recipeId);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                String title = rs.getString("title");
+                String description = rs.getString("description");
+                Category category = Category.valueOf(rs.getString("category"));
+                String recipeType = rs.getString("recipe_type");
+
+                Recipe recipe;
+                switch (recipeType) {
+                    case "SWEET" -> recipe = new SweetFood(
+                            title, description, category,
+                            rs.getDouble("sugar_content"),
+                            rs.getInt("calories"),
+                            rs.getDouble("carbs")
+                    );
+                    case "SAVORY" -> recipe = new SavoryFood(
+                            title, description, category,
+                            SavoryFood.SpiceLevel.valueOf(rs.getString("spice_level")),
+                            rs.getDouble("protein"),
+                            rs.getDouble("sodium")
+                    );
+                    default -> recipe = new Recipe(title, description, category);
+                }
+
+                recipe.setId(recipeId);
+
+                for (Ingredient ing : getIngredientsForRecipe(conn, recipeId)) {
+                    recipe.addIngredients(ing);
+                }
+                for (String step : getStepsForRecipe(conn, recipeId)) {
+                    recipe.addSteps(step);
+                }
+
+                return recipe;
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching recipe by id: " + e.getMessage());
+        }
+
+        return null;
+    }
+
     public static void main(String[] args) {
         initializeTables();
 
-        List<Recipe> all = getAllRecipes();
-        for (Recipe r : all) {
-            System.out.println(r);
-            System.out.println(r.getNutritionSummary());
-            System.out.println("---");
+        if (getAllRecipes().isEmpty()) {
+            Recipe toast = new Recipe("Plain Toast", "Just bread", Category.BREAKFAST);
+            toast.addIngredients(new Ingredient("bread", 2.0, "slices"));
+            toast.addSteps("Toast until golden");
+            insertRecipe(toast);
         }
+
+        List<Recipe> all = getAllRecipes();
+        int testRecipeId = all.get(0).getId();
+
+        System.out.println("--- Before update ---");
+        for (Recipe r : getAllRecipes()) {
+            System.out.println(r);
+        }
+
+        updateRecipeDescription(testRecipeId, "Updated: toasted bread with butter");
+
+        System.out.println("--- After update ---");
+        for (Recipe r : getAllRecipes()) {
+            System.out.println(r);
+        }
+
+        addFavoriteRecipe(testRecipeId);
+        System.out.println("Favorites count before delete: " + countFavorites());
+
+        deleteRecipe(testRecipeId);
+        System.out.println("Favorites count after delete: " + countFavorites());
+    }
+
+    public static int countFavorites() {
+        String sql = "SELECT COUNT(*) AS total FROM favorites";
+        int count = 0;
+
+        try (Connection conn = connect();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            if (rs.next()) {
+                count = rs.getInt("total");
+            }
+
+        } catch (SQLException e) {
+            System.out.println("Error counting favorites: " + e.getMessage());
+        }
+
+        return count;
     }
 }

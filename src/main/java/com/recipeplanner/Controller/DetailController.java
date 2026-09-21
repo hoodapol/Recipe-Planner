@@ -3,6 +3,7 @@ package com.recipeplanner.Controller;
 import com.recipeplanner.model.Favorites;
 import com.recipeplanner.model.Ingredient;
 import com.recipeplanner.model.Recipe;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -17,6 +18,8 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 public class DetailController {
@@ -64,6 +67,12 @@ public class DetailController {
     private static final String FAV_BTN_NORMAL = "-fx-background-color: #A97C50; -fx-background-radius: 21; -fx-cursor: hand;";
     private static final String FAV_BTN_HOVER = "-fx-background-color: #8C6239; -fx-background-radius: 21; -fx-cursor: hand;";
 
+    private final ExecutorService dbExecutor = Executors.newFixedThreadPool(1, runnable -> {
+        Thread thread = new Thread(runnable, "favorite-worker");
+        thread.setDaemon(true);
+        return thread;
+    });
+
     @FXML
     public void initialize() {
         backButton.setOnMouseEntered(e -> backButton.setStyle(BACK_BTN_HOVER));
@@ -99,23 +108,38 @@ public class DetailController {
         stepsListView.setItems(FXCollections.observableArrayList(numberedSteps));
         stepsHeaderLabel.setText("STEPS (" + steps.size() + ")");
 
-        updateFavoriteButtonText();
+        favoriteButton.setDisable(true);
+        dbExecutor.execute(() -> {
+            boolean isFav = Favorites.getInstance().isFavorite(currentRecipe);
+            Platform.runLater(() -> {
+                favoriteButton.setDisable(false);
+                updateFavoriteButtonText(isFav);
+            });
+        });
     }
 
     @FXML
     private void handleToggleFavorite() {
-        Favorites favorites = Favorites.getInstance();
-        if (favorites.isFavorite(currentRecipe)) {
-            favorites.removeFavorite(currentRecipe);
-        } else {
-            favorites.addFavorite(currentRecipe);
-        }
-        updateFavoriteButtonText();
+        favoriteButton.setDisable(true);
+
+        dbExecutor.execute(() -> {
+            Favorites favorites = Favorites.getInstance();
+            if (favorites.isFavorite(currentRecipe)) {
+                favorites.removeFavorite(currentRecipe);
+            } else {
+                favorites.addFavorite(currentRecipe);
+            }
+            boolean isFavNow = favorites.isFavorite(currentRecipe);
+
+            Platform.runLater(() -> {
+                favoriteButton.setDisable(false);
+                updateFavoriteButtonText(isFavNow);
+            });
+        });
     }
 
-    private void updateFavoriteButtonText() {
-        boolean isFav = Favorites.getInstance().isFavorite(currentRecipe);
-        favoriteButton.setText(isFav ? "♥  Remove from Favorites" : "♡  Save to Favorites");
+    private void updateFavoriteButtonText(boolean isFavorite) {
+        favoriteButton.setText(isFavorite ? "♥  Remove from Favorites" : "♡  Save to Favorites");
     }
 
     @FXML

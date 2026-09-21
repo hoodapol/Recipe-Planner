@@ -1,6 +1,7 @@
 package com.recipeplanner.Controller;
 
 import com.recipeplanner.model.*;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -20,6 +21,8 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class DashboardController {
 
@@ -51,6 +54,12 @@ public class DashboardController {
 
     private static final String VIEW_BTN_NORMAL = "-fx-background-color: #A97C50; -fx-background-radius: 14; -fx-cursor: hand;";
     private static final String VIEW_BTN_HOVER = "-fx-background-color: #8C6239; -fx-background-radius: 14; -fx-cursor: hand;";
+
+    private final ExecutorService dbExecutor = Executors.newFixedThreadPool(2, runnable -> {
+        Thread thread = new Thread(runnable, "db-worker");
+        thread.setDaemon(true);
+        return thread;
+    });
 
     @FXML
     public void initialize() {
@@ -94,19 +103,33 @@ public class DashboardController {
         currentTab = "favorites";
         setActiveButton(favoritesNavButton);
         contentArea.getChildren().clear();
-
         contentArea.getChildren().add(sectionTitle("Your Favorites"));
 
-        List<Recipe> favorites = Favorites.getInstance().getFavorites();
-        if (favorites.isEmpty()) {
-            Label placeholder = new Label("(no favorites saved yet)");
-            placeholder.setTextFill(Color.web("#6b5b4d"));
-            contentArea.getChildren().add(placeholder);
-        } else {
-            for (Recipe r : favorites) {
-                contentArea.getChildren().add(createRecipeRow(r));
-            }
-        }
+        Label loading = new Label("Loading...");
+        loading.setTextFill(Color.web("#6b5b4d"));
+        contentArea.getChildren().add(loading);
+
+        dbExecutor.execute(() -> {
+            List<Recipe> favorites = Favorites.getInstance().getFavorites();
+
+            Platform.runLater(() -> {
+                if (!"favorites".equals(currentTab)) {
+                    return;
+                }
+                contentArea.getChildren().clear();
+                contentArea.getChildren().add(sectionTitle("Your Favorites"));
+
+                if (favorites.isEmpty()) {
+                    Label placeholder = new Label("(no favorites saved yet)");
+                    placeholder.setTextFill(Color.web("#6b5b4d"));
+                    contentArea.getChildren().add(placeholder);
+                } else {
+                    for (Recipe r : favorites) {
+                        contentArea.getChildren().add(createRecipeRow(r));
+                    }
+                }
+            });
+        });
     }
 
     @FXML
@@ -115,26 +138,40 @@ public class DashboardController {
         setActiveButton(homeNavButton);
         contentArea.getChildren().clear();
 
-        List<Recipe> allRecipes = RecipeRepository.getInstance().getAllRecipes();
+        Label loading = new Label("Loading...");
+        loading.setTextFill(Color.web("#6b5b4d"));
+        contentArea.getChildren().add(loading);
 
-        Label greeting = new Label("Good to see you!");
-        greeting.setTextFill(Color.web("#5c3a21"));
-        greeting.setFont(Font.font("Segoe UI", FontWeight.BOLD, 22));
+        dbExecutor.execute(() -> {
+            List<Recipe> allRecipes = RecipeRepository.getInstance().getAllRecipes();
+            int favoritesCount = Favorites.getInstance().getFavorites().size();
 
-        Label subGreeting = new Label("Explore your recipes and plan your next meal.");
-        subGreeting.setTextFill(Color.web("#6b5b4d"));
-        subGreeting.setFont(Font.font("Segoe UI", 13));
+            Platform.runLater(() -> {
+                if (!"home".equals(currentTab)) {
+                    return;
+                }
+                contentArea.getChildren().clear();
 
-        HBox statsRow = new HBox(14,
-                statCard("Recipes", String.valueOf(allRecipes.size())),
-                statCard("Favorites", String.valueOf(Favorites.getInstance().getFavorites().size())),
-                statCard("Categories", String.valueOf(Category.values().length))
-        );
+                Label greeting = new Label("Good to see you!");
+                greeting.setTextFill(Color.web("#5c3a21"));
+                greeting.setFont(Font.font("Segoe UI", FontWeight.BOLD, 22));
 
-        contentArea.getChildren().addAll(greeting, subGreeting, statsRow, sectionTitle("Recommended Recipes"));
-        for (Recipe r : allRecipes) {
-            contentArea.getChildren().add(createRecipeRow(r));
-        }
+                Label subGreeting = new Label("Explore your recipes and plan your next meal.");
+                subGreeting.setTextFill(Color.web("#6b5b4d"));
+                subGreeting.setFont(Font.font("Segoe UI", 13));
+
+                HBox statsRow = new HBox(14,
+                        statCard("Recipes", String.valueOf(allRecipes.size())),
+                        statCard("Favorites", String.valueOf(favoritesCount)),
+                        statCard("Categories", String.valueOf(Category.values().length))
+                );
+
+                contentArea.getChildren().addAll(greeting, subGreeting, statsRow, sectionTitle("Recommended Recipes"));
+                for (Recipe r : allRecipes) {
+                    contentArea.getChildren().add(createRecipeRow(r));
+                }
+            });
+        });
     }
 
     @FXML

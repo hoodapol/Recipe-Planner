@@ -1,13 +1,10 @@
 package com.recipeplanner.model;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Favorites {
 
     private static final Favorites INSTANCE = new Favorites();
-
-    private final List<Recipe> favorites = new ArrayList<>();
 
     private Favorites() {
     }
@@ -17,20 +14,27 @@ public class Favorites {
     }
 
     public void addFavorite(Recipe recipe) {
-        if (!favorites.contains(recipe)) {
-            favorites.add(recipe);
+        if (recipe.getId() == -1) {
+            return;
         }
+        DatabaseManager.addFavoriteRecipe(recipe.getId());
     }
 
     public void removeFavorite(Recipe recipe) {
-        favorites.remove(recipe);
+        if (recipe.getId() == -1) {
+            return;
+        }
+        DatabaseManager.removeFavoriteRecipe(recipe.getId());
     }
 
     public boolean isFavorite(Recipe recipe) {
-        return favorites.contains(recipe);
+        if (recipe.getId() == -1) {
+            return false;
+        }
+        return DatabaseManager.isFavorite(recipe.getId());
     }
 
     public List<Recipe> getFavorites() {
-        return favorites;
+        return DatabaseManager.getFavoriteRecipes();
     }
 }
