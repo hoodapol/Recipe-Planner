@@ -11,10 +11,14 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
@@ -23,6 +27,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 public class DashboardController {
 
@@ -52,8 +57,8 @@ public class DashboardController {
     private static final String NAV_HOVER = "-fx-background-color: #F3E9DC; -fx-background-radius: 10;";
     private static final String NAV_ACTIVE = "-fx-background-color: #EADFCF; -fx-background-radius: 10;";
 
-    private static final String VIEW_BTN_NORMAL = "-fx-background-color: #A97C50; -fx-background-radius: 14; -fx-cursor: hand;";
-    private static final String VIEW_BTN_HOVER = "-fx-background-color: #8C6239; -fx-background-radius: 14; -fx-cursor: hand;";
+    private static final String PILL_NORMAL = "-fx-background-color: #EADFCF; -fx-background-radius: 18; -fx-cursor: hand; -fx-padding: 8 20 8 20;";
+    private static final String PILL_HOVER = "-fx-background-color: #DCC9AE; -fx-background-radius: 18; -fx-cursor: hand; -fx-padding: 8 20 8 20;";
 
     private final ExecutorService dbExecutor = Executors.newFixedThreadPool(2, runnable -> {
         Thread thread = new Thread(runnable, "db-worker");
@@ -92,7 +97,7 @@ public class DashboardController {
             Parent searchRoot = loader.load();
 
             Stage stage = (Stage) contentArea.getScene().getWindow();
-            stage.setScene(new Scene(searchRoot, 600, 540));
+            stage.getScene().setRoot(searchRoot);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -124,9 +129,13 @@ public class DashboardController {
                     placeholder.setTextFill(Color.web("#6b5b4d"));
                     contentArea.getChildren().add(placeholder);
                 } else {
+                    FlowPane grid = new FlowPane();
+                    grid.setHgap(16);
+                    grid.setVgap(16);
                     for (Recipe r : favorites) {
-                        contentArea.getChildren().add(createRecipeRow(r));
+                        grid.getChildren().add(createRecipeCard(r));
                     }
+                    contentArea.getChildren().add(grid);
                 }
             });
         });
@@ -144,7 +153,6 @@ public class DashboardController {
 
         dbExecutor.execute(() -> {
             List<Recipe> allRecipes = RecipeRepository.getInstance().getAllRecipes();
-            int favoritesCount = Favorites.getInstance().getFavorites().size();
 
             Platform.runLater(() -> {
                 if (!"home".equals(currentTab)) {
@@ -160,16 +168,14 @@ public class DashboardController {
                 subGreeting.setTextFill(Color.web("#6b5b4d"));
                 subGreeting.setFont(Font.font("Segoe UI", 13));
 
-                HBox statsRow = new HBox(14,
-                        statCard("Recipes", String.valueOf(allRecipes.size())),
-                        statCard("Favorites", String.valueOf(favoritesCount)),
-                        statCard("Categories", String.valueOf(Category.values().length))
-                );
-
-                contentArea.getChildren().addAll(greeting, subGreeting, statsRow, sectionTitle("Recommended Recipes"));
+                FlowPane grid = new FlowPane();
+                grid.setHgap(16);
+                grid.setVgap(16);
                 for (Recipe r : allRecipes) {
-                    contentArea.getChildren().add(createRecipeRow(r));
+                    grid.getChildren().add(createRecipeCard(r));
                 }
+
+                contentArea.getChildren().addAll(greeting, subGreeting, sectionTitle("Recommended Recipes"), grid);
             });
         });
     }
@@ -179,11 +185,85 @@ public class DashboardController {
         currentTab = "categories";
         setActiveButton(categoriesNavButton);
         contentArea.getChildren().clear();
+
         contentArea.getChildren().add(sectionTitle("Browse by Category"));
 
-        Label placeholder = new Label("(category list coming soon)");
-        placeholder.setTextFill(Color.web("#6b5b4d"));
-        contentArea.getChildren().add(placeholder);
+        Label subtitle = new Label("Pick a category to see matching recipes.");
+        subtitle.setTextFill(Color.web("#6b5b4d"));
+        subtitle.setFont(Font.font("Segoe UI", 13));
+        contentArea.getChildren().add(subtitle);
+
+        FlowPane pillRow = new FlowPane();
+        pillRow.setHgap(12);
+        pillRow.setVgap(12);
+        for (Category category : Category.values()) {
+            pillRow.getChildren().add(categoryPill(category));
+        }
+        contentArea.getChildren().add(pillRow);
+    }
+
+    private Label categoryPill(Category category) {
+        Label pill = new Label(formatCategoryName(category));
+        pill.setTextFill(Color.web("#5c3a21"));
+        pill.setFont(Font.font("Segoe UI Semibold", 13));
+        pill.setStyle(PILL_NORMAL);
+
+        pill.setOnMouseEntered(e -> pill.setStyle(PILL_HOVER));
+        pill.setOnMouseExited(e -> pill.setStyle(PILL_NORMAL));
+        pill.setOnMouseClicked(e -> showRecipesForCategory(category));
+
+        return pill;
+    }
+
+    private String formatCategoryName(Category category) {
+        String name = category.toString();
+        return name.charAt(0) + name.substring(1).toLowerCase();
+    }
+
+    private void showRecipesForCategory(Category category) {
+        contentArea.getChildren().clear();
+
+        Button backToCategories = new Button("← Categories");
+        backToCategories.setStyle(PILL_NORMAL);
+        backToCategories.setTextFill(Color.web("#5c3a21"));
+        backToCategories.setFont(Font.font("Segoe UI Semibold", 12));
+        backToCategories.setOnAction(e -> showCategories());
+        backToCategories.setOnMouseEntered(e -> backToCategories.setStyle(PILL_HOVER));
+        backToCategories.setOnMouseExited(e -> backToCategories.setStyle(PILL_NORMAL));
+
+        contentArea.getChildren().add(backToCategories);
+        contentArea.getChildren().add(sectionTitle(formatCategoryName(category) + " Recipes"));
+
+        Label loading = new Label("Loading...");
+        loading.setTextFill(Color.web("#6b5b4d"));
+        contentArea.getChildren().add(loading);
+
+        dbExecutor.execute(() -> {
+            List<Recipe> matches = RecipeRepository.getInstance().getAllRecipes().stream()
+                    .filter(r -> r.getCategory() == category)
+                    .collect(Collectors.toList());
+
+            Platform.runLater(() -> {
+                if (!"categories".equals(currentTab)) {
+                    return;
+                }
+                contentArea.getChildren().remove(loading);
+
+                if (matches.isEmpty()) {
+                    Label placeholder = new Label("No recipes found in this category yet.");
+                    placeholder.setTextFill(Color.web("#6b5b4d"));
+                    contentArea.getChildren().add(placeholder);
+                } else {
+                    FlowPane grid = new FlowPane();
+                    grid.setHgap(16);
+                    grid.setVgap(16);
+                    for (Recipe r : matches) {
+                        grid.getChildren().add(createRecipeCard(r));
+                    }
+                    contentArea.getChildren().add(grid);
+                }
+            });
+        });
     }
 
     public void showTab(String tab) {
@@ -194,23 +274,6 @@ public class DashboardController {
         }
     }
 
-    private VBox statCard(String label, String value) {
-        Label valueLabel = new Label(value);
-        valueLabel.setTextFill(Color.web("#5c3a21"));
-        valueLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 20));
-
-        Label captionLabel = new Label(label);
-        captionLabel.setTextFill(Color.web("#8a7768"));
-        captionLabel.setFont(Font.font("Segoe UI", 11));
-
-        VBox card = new VBox(4, valueLabel, captionLabel);
-        card.setAlignment(Pos.CENTER);
-        card.setPrefWidth(120);
-        card.setPadding(new Insets(14, 10, 14, 10));
-        card.setStyle("-fx-background-color: #FFFDF9; -fx-background-radius: 14; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);");
-        return card;
-    }
-
     private Label sectionTitle(String text) {
         Label label = new Label(text);
         label.setTextFill(Color.web("#5c3a21"));
@@ -218,26 +281,44 @@ public class DashboardController {
         return label;
     }
 
-    private HBox createRecipeRow(Recipe recipe) {
-        Label nameLabel = new Label(recipe.getTitle() + "  (" + recipe.getCategory() + ")");
-        nameLabel.setTextFill(Color.web("#5c3a21"));
+    private VBox createRecipeCard(Recipe recipe) {
+        double imageSize = 130;
 
-        Button viewButton = new Button("View");
-        viewButton.setStyle(VIEW_BTN_NORMAL);
-        viewButton.setTextFill(Color.WHITE);
-        viewButton.setOnAction(e -> openDetail(recipe));
-        viewButton.setOnMouseEntered(e -> viewButton.setStyle(VIEW_BTN_HOVER));
-        viewButton.setOnMouseExited(e -> viewButton.setStyle(VIEW_BTN_NORMAL));
+        ImageView imageView = new ImageView();
+        imageView.setFitWidth(imageSize);
+        imageView.setFitHeight(imageSize);
+        imageView.setPreserveRatio(false);
+        imageView.setSmooth(true);
 
-        HBox spacer = new HBox();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
+        Rectangle clip = new Rectangle(imageSize, imageSize);
+        clip.setArcWidth(16);
+        clip.setArcHeight(16);
+        imageView.setClip(clip);
 
-        HBox row = new HBox(12, nameLabel, spacer, viewButton);
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(10, 14, 10, 14));
-        row.setStyle("-fx-background-color: #FFFDF9; -fx-background-radius: 10;");
+        String url = recipe.getImageUrl();
+        if (url != null && !url.isEmpty()) {
+            imageView.setImage(ImageCache.get(url, imageSize, imageSize));
+        }
 
-        return row;
+        Label titleLabel = new Label(recipe.getTitle());
+        titleLabel.setTextFill(Color.web("#5c3a21"));
+        titleLabel.setFont(Font.font("Segoe UI Semibold", 12));
+        titleLabel.setWrapText(true);
+        titleLabel.setMaxWidth(imageSize);
+        titleLabel.setAlignment(Pos.CENTER);
+        titleLabel.setStyle("-fx-text-alignment: center;");
+
+        VBox card = new VBox(8, imageView, titleLabel);
+        card.setAlignment(Pos.TOP_CENTER);
+        card.setPrefWidth(imageSize);
+        card.setPadding(new Insets(8));
+        card.setStyle("-fx-background-color: #FFFDF9; -fx-background-radius: 14; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2); -fx-cursor: hand;");
+
+        card.setOnMouseClicked(e -> openDetail(recipe));
+        card.setOnMouseEntered(e -> card.setStyle("-fx-background-color: #FFF8EE; -fx-background-radius: 14; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.14), 10, 0, 0, 3); -fx-cursor: hand;"));
+        card.setOnMouseExited(e -> card.setStyle("-fx-background-color: #FFFDF9; -fx-background-radius: 14; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2); -fx-cursor: hand;"));
+
+        return card;
     }
 
     private void openDetail(Recipe recipe) {
@@ -250,7 +331,7 @@ public class DashboardController {
             detailController.setReturnTab(currentTab);
 
             Stage stage = (Stage) contentArea.getScene().getWindow();
-            stage.setScene(new Scene(detailRoot, 720, 500));
+            stage.getScene().setRoot(detailRoot);
         } catch (IOException e) {
             e.printStackTrace();
         }

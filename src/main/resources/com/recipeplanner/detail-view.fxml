@@ -5,6 +5,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
@@ -39,6 +40,11 @@
                         <Insets bottom="28.0" left="30.0" right="30.0" top="24.0" />
                     </padding>
                     <children>
+                        <StackPane fx:id="imageContainer" prefHeight="220.0" alignment="CENTER">
+                            <children>
+                                <ImageView fx:id="recipeImageView" fitWidth="560.0" fitHeight="220.0" preserveRatio="false" smooth="true" />
+                            </children>
+                        </StackPane>
                         <Label text="RECIPE" textFill="#B08968">
                             <font>
                                 <Font name="Segoe UI Semibold" size="11.0" />
@@ -54,14 +60,23 @@
                                 <Font name="Segoe UI Semibold" size="11.0" />
                             </font>
                         </Label>
-                        <Label fx:id="descriptionLabel" text="Description goes here" textFill="#6b5b4d" wrapText="true">
-                            <font>
-                                <Font name="Segoe UI" size="13.0" />
-                            </font>
+                        <HBox spacing="8.0" alignment="CENTER_LEFT">
+                            <children>
+                                <Label fx:id="descriptionLabel" text="Description goes here" textFill="#6b5b4d" wrapText="true" HBox.hgrow="ALWAYS">
+                                    <font>
+                                        <Font name="Segoe UI" size="13.0" />
+                                    </font>
+                                </Label>
+                                <Button fx:id="editDescriptionButton" mnemonicParsing="false" onAction="#handleEditDescription" style="-fx-background-color: transparent; -fx-text-fill: #A97C50; -fx-cursor: hand; -fx-border-color: transparent;" text="✏ Edit">
+                                    <font>
+                                        <Font name="Segoe UI Semibold" size="11.0" />
+                                    </font>
+                                </Button>
+                            </children>
                             <VBox.margin>
                                 <Insets top="4.0" bottom="6.0" />
                             </VBox.margin>
-                        </Label>
+                        </HBox>
                         <HBox spacing="10.0" style="-fx-background-color: #FFFDF9; -fx-background-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);">
                             <children>
                                 <Rectangle width="4.0" height="50.0" arcWidth="4.0" arcHeight="4.0" fill="#A97C50" />
@@ -92,10 +107,18 @@
                                 <Insets top="4.0" bottom="6.0" />
                             </VBox.margin>
                         </Button>
+                        <Button fx:id="deleteButton" mnemonicParsing="false" onAction="#handleDeleteRecipe" style="-fx-background-color: transparent; -fx-border-color: #B33A3A; -fx-border-radius: 16; -fx-background-radius: 16; -fx-cursor: hand; -fx-padding: 6 18 6 18;" text="🗑 Delete Recipe" textFill="#B33A3A">
+                            <font>
+                                <Font name="Segoe UI Semibold" size="12.0" />
+                            </font>
+                        </Button>
                         <Label fx:id="ingredientsHeaderLabel" text="INGREDIENTS" textFill="#B08968">
                             <font>
                                 <Font name="Segoe UI Semibold" size="12.0" />
                             </font>
+                            <VBox.margin>
+                                <Insets top="6.0" />
+                            </VBox.margin>
                         </Label>
                         <VBox style="-fx-background-color: #FFFDF9; -fx-background-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);">
                             <children>

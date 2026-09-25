@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Recipe {
-    private String title, description;
+    private String title;
+    private String description;
     private Category category;
     private List<Ingredient> ingredients;
     private List<String> steps;
     private int id = -1;
+    private String imageUrl;
+    private String externalId;
 
     public Recipe(String title, String description, Category category) {
         this.title = title;
@@ -64,6 +67,22 @@ public class Recipe {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public String getExternalId() {
+        return externalId;
+    }
+
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
     }
 
     @Override

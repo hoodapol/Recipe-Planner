@@ -151,7 +151,7 @@ public class SearchController {
             detailController.setReturnTab("search");
 
             Stage stage = (Stage) backButton.getScene().getWindow();
-            stage.setScene(new Scene(detailRoot, 720, 500));
+            stage.getScene().setRoot(detailRoot);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -164,7 +164,7 @@ public class SearchController {
             Parent dashboardRoot = loader.load();
 
             Stage stage = (Stage) backButton.getScene().getWindow();
-            stage.setScene(new Scene(dashboardRoot, 720, 500));
+            stage.getScene().setRoot(dashboardRoot);
         } catch (IOException e) {
             e.printStackTrace();
         }

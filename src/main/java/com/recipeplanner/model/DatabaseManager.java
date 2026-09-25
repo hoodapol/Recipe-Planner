@@ -32,7 +32,8 @@ public class DatabaseManager {
                     carbs REAL,
                     spice_level TEXT,
                     protein REAL,
-                    sodium REAL
+                    sodium REAL,
+                    image_url TEXT
                 );
             """);
 
@@ -74,8 +75,8 @@ public class DatabaseManager {
 
     public static void insertRecipe(Recipe recipe) {
         String insertRecipeSql = """
-            INSERT INTO recipes (title, description, category, recipe_type, sugar_content, calories, carbs, spice_level, protein, sodium)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO recipes (title, description, category, recipe_type, sugar_content, calories, carbs, spice_level, protein, sodium, image_url)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """;
 
         try (Connection conn = connect();
@@ -110,6 +111,8 @@ public class DatabaseManager {
                 pstmt.setNull(9, java.sql.Types.REAL);
                 pstmt.setNull(10, java.sql.Types.REAL);
             }
+
+            pstmt.setString(11, recipe.getImageUrl());
 
             pstmt.executeUpdate();
 
@@ -167,31 +170,9 @@ public class DatabaseManager {
              ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
+                Recipe recipe = mapRowToRecipe(rs);
+
                 int id = rs.getInt("id");
-                String title = rs.getString("title");
-                String description = rs.getString("description");
-                Category category = Category.valueOf(rs.getString("category"));
-                String recipeType = rs.getString("recipe_type");
-
-                Recipe recipe;
-                switch (recipeType) {
-                    case "SWEET" -> recipe = new SweetFood(
-                            title, description, category,
-                            rs.getDouble("sugar_content"),
-                            rs.getInt("calories"),
-                            rs.getDouble("carbs")
-                    );
-                    case "SAVORY" -> recipe = new SavoryFood(
-                            title, description, category,
-                            SavoryFood.SpiceLevel.valueOf(rs.getString("spice_level")),
-                            rs.getDouble("protein"),
-                            rs.getDouble("sodium")
-                    );
-                    default -> recipe = new Recipe(title, description, category);
-                }
-
-                recipe.setId(id);
-
                 for (Ingredient ing : getIngredientsForRecipe(conn, id)) {
                     recipe.addIngredients(ing);
                 }
@@ -207,6 +188,37 @@ public class DatabaseManager {
         }
 
         return recipes;
+    }
+
+    private static Recipe mapRowToRecipe(ResultSet rs) throws SQLException {
+        int id = rs.getInt("id");
+        String title = rs.getString("title");
+        String description = rs.getString("description");
+        Category category = Category.valueOf(rs.getString("category"));
+        String recipeType = rs.getString("recipe_type");
+        String imageUrl = rs.getString("image_url");
+
+        Recipe recipe;
+        switch (recipeType) {
+            case "SWEET" -> recipe = new SweetFood(
+                    title, description, category,
+                    rs.getDouble("sugar_content"),
+                    rs.getInt("calories"),
+                    rs.getDouble("carbs")
+            );
+            case "SAVORY" -> recipe = new SavoryFood(
+                    title, description, category,
+                    SavoryFood.SpiceLevel.valueOf(rs.getString("spice_level")),
+                    rs.getDouble("protein"),
+                    rs.getDouble("sodium")
+            );
+            default -> recipe = new Recipe(title, description, category);
+        }
+
+        recipe.setId(id);
+        recipe.setImageUrl(imageUrl);
+
+        return recipe;
     }
 
     private static List<Ingredient> getIngredientsForRecipe(Connection conn, int recipeId) throws SQLException {
@@ -354,29 +366,7 @@ public class DatabaseManager {
             ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
-                String title = rs.getString("title");
-                String description = rs.getString("description");
-                Category category = Category.valueOf(rs.getString("category"));
-                String recipeType = rs.getString("recipe_type");
-
-                Recipe recipe;
-                switch (recipeType) {
-                    case "SWEET" -> recipe = new SweetFood(
-                            title, description, category,
-                            rs.getDouble("sugar_content"),
-                            rs.getInt("calories"),
-                            rs.getDouble("carbs")
-                    );
-                    case "SAVORY" -> recipe = new SavoryFood(
-                            title, description, category,
-                            SavoryFood.SpiceLevel.valueOf(rs.getString("spice_level")),
-                            rs.getDouble("protein"),
-                            rs.getDouble("sodium")
-                    );
-                    default -> recipe = new Recipe(title, description, category);
-                }
-
-                recipe.setId(recipeId);
+                Recipe recipe = mapRowToRecipe(rs);
 
                 for (Ingredient ing : getIngredientsForRecipe(conn, recipeId)) {
                     recipe.addIngredients(ing);
@@ -392,38 +382,6 @@ public class DatabaseManager {
         }
 
         return null;
-    }
-
-    public static void main(String[] args) {
-        initializeTables();
-
-        if (getAllRecipes().isEmpty()) {
-            Recipe toast = new Recipe("Plain Toast", "Just bread", Category.BREAKFAST);
-            toast.addIngredients(new Ingredient("bread", 2.0, "slices"));
-            toast.addSteps("Toast until golden");
-            insertRecipe(toast);
-        }
-
-        List<Recipe> all = getAllRecipes();
-        int testRecipeId = all.get(0).getId();
-
-        System.out.println("--- Before update ---");
-        for (Recipe r : getAllRecipes()) {
-            System.out.println(r);
-        }
-
-        updateRecipeDescription(testRecipeId, "Updated: toasted bread with butter");
-
-        System.out.println("--- After update ---");
-        for (Recipe r : getAllRecipes()) {
-            System.out.println(r);
-        }
-
-        addFavoriteRecipe(testRecipeId);
-        System.out.println("Favorites count before delete: " + countFavorites());
-
-        deleteRecipe(testRecipeId);
-        System.out.println("Favorites count after delete: " + countFavorites());
     }
 
     public static int countFavorites() {

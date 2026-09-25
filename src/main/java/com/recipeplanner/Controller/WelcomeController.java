@@ -29,6 +29,6 @@ public class WelcomeController {
         Parent dashboardRoot = loader.load();
 
         Stage stage = (Stage) getStartedButton.getScene().getWindow();
-        stage.setScene(new Scene(dashboardRoot, 720, 500));
+        stage.getScene().setRoot(dashboardRoot);
     }
 }
