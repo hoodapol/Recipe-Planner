@@ -1,6 +1,6 @@
 package com.recipeplanner.model;
 
-public class SavoryFood extends Recipe{
+public class SavoryFood extends NutritionalRecipe {
     public enum SpiceLevel {
         MILD, MEDIUM, HOT, EXTRAHOT
     }

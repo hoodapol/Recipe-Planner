@@ -3,7 +3,7 @@ package com.recipeplanner.model;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Recipe {
+public class Recipe implements NutritionProvider {
     private String title;
     private String description;
     private Category category;
@@ -92,6 +92,7 @@ public class Recipe {
                 + "\nSteps: " + steps;
     }
 
+    @Override
     public String getNutritionSummary() {
         return "No detailed nutrition info available for this recipe.";
     }

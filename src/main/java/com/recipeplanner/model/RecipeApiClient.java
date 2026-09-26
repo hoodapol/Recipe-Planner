@@ -15,11 +15,6 @@ public class RecipeApiClient {
 
     private static final HttpClient CLIENT = HttpClient.newHttpClient();
 
-    /**
-     * Maps our own Category enum to one or more real TheMealDB category
-     * names, used with filter.php to guarantee coverage for every one
-     * of our categories (since random.php alone can't guarantee this).
-     */
     private static final Map<Category, List<String>> SOURCE_CATEGORIES = Map.of(
             Category.BREAKFAST, List.of("Breakfast"),
             Category.DESSERT, List.of("Dessert"),
@@ -29,11 +24,6 @@ public class RecipeApiClient {
             Category.DINNER, List.of("Chicken", "Beef", "Seafood", "Pork", "Lamb")
     );
 
-    /**
-     * Fetches enough recipes so every one of our Category values has at
-     * least `perCategoryMinimum` recipes, using TheMealDB's real category
-     * filter (not left to random chance).
-     */
     public static List<Recipe> fetchBalancedRecipes(int perCategoryMinimum) {
         List<Recipe> allRecipes = new ArrayList<>();
         Set<String> seenExternalIds = new HashSet<>();
@@ -66,10 +56,6 @@ public class RecipeApiClient {
         return allRecipes;
     }
 
-    /**
-     * Adds extra recipes purely at random, on top of an already-fetched
-     * batch, skipping anything already present (by externalId).
-     */
     public static List<Recipe> fetchAdditionalRandomRecipes(int count, Set<String> alreadyHaveExternalIds) {
         List<Recipe> recipes = new ArrayList<>();
         Set<String> seen = new HashSet<>(alreadyHaveExternalIds);
