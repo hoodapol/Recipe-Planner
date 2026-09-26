@@ -10,13 +10,13 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextInputDialog;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
@@ -38,7 +38,7 @@ public class DetailController {
     private StackPane imageContainer;
 
     @FXML
-    private ImageView recipeImageView;
+    private javafx.scene.image.ImageView recipeImageView;
 
     @FXML
     private Button backButton;
@@ -106,14 +106,10 @@ public class DetailController {
         deleteButton.setOnMouseEntered(e -> deleteButton.setStyle(DELETE_BTN_HOVER));
         deleteButton.setOnMouseExited(e -> deleteButton.setStyle(DELETE_BTN_NORMAL));
 
-        Rectangle clip = new Rectangle();
-        clip.setHeight(220);
+        Rectangle clip = new Rectangle(560, 220);
         clip.setArcWidth(20);
         clip.setArcHeight(20);
-        clip.widthProperty().bind(imageContainer.widthProperty());
         recipeImageView.setClip(clip);
-
-        recipeImageView.fitWidthProperty().bind(imageContainer.widthProperty());
     }
 
     public void setReturnTab(String tab) {
@@ -156,7 +152,7 @@ public class DetailController {
 
         imageContainer.setVisible(true);
         imageContainer.setManaged(true);
-        recipeImageView.setImage(ImageCache.get(imageUrl, 560, 220));
+        recipeImageView.setImage(ImageCache.get(imageUrl));
     }
 
     @FXML

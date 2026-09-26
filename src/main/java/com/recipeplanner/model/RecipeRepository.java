@@ -30,13 +30,13 @@ public class RecipeRepository {
 
         System.out.println("Database empty — fetching balanced recipes from API...");
 
-        List<Recipe> balanced = RecipeApiClient.fetchBalancedRecipes(10);
+        List<Recipe> balanced = RecipeApiClient.fetchBalancedRecipes(3);
 
         Set<String> alreadyFetchedIds = balanced.stream()
                 .map(Recipe::getExternalId)
                 .collect(Collectors.toSet());
 
-        List<Recipe> extraRandom = RecipeApiClient.fetchAdditionalRandomRecipes(40, alreadyFetchedIds);
+        List<Recipe> extraRandom = RecipeApiClient.fetchAdditionalRandomRecipes(18, alreadyFetchedIds);
 
         for (Recipe recipe : balanced) {
             DatabaseManager.insertRecipe(recipe);

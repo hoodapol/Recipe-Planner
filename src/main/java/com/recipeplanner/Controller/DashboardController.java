@@ -297,7 +297,7 @@ public class DashboardController {
 
         String url = recipe.getImageUrl();
         if (url != null && !url.isEmpty()) {
-            imageView.setImage(ImageCache.get(url, imageSize, imageSize));
+            imageView.setImage(ImageCache.get(url));
         }
 
         Label titleLabel = new Label(recipe.getTitle());

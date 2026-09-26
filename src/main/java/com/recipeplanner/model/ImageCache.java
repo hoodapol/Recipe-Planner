@@ -9,6 +9,10 @@ public class ImageCache {
 
     private static final Map<String, Image> cache = new ConcurrentHashMap<>();
 
+    public static Image get(String url) {
+        return cache.computeIfAbsent(url, u -> new Image(u, 0, 0, true, true, true));
+    }
+
     public static Image get(String url, double width, double height) {
         return cache.computeIfAbsent(url, u -> new Image(u, width, height, false, true, true));
     }
